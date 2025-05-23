@@ -1,7 +1,7 @@
 # SQL Injection Writeup: German Grammar App (Ruby on Rails)
 
 **App Framework:** Ruby on Rails  
-**Vulnerability:** SQL Injection in custom controller logic for filtering nouns by gender
+**Vulnerability:** SQL Injection in custom controller logic for filtering nouns by gender  
 **Status:** Patched  
 **Purpose:** Hands-on AppSec practice and demonstration of secure coding principles
 
