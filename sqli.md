@@ -21,7 +21,7 @@ This writeup documents the vulnerable code, the URL-based injection used to expl
 In this early version, I bypassed ActiveRecord’s protections and manually built a query:
 
 ```ruby
-# 🚨 Vulnerable login method (simulating raw SQL injection)
+# 🚨 Vulnerable filter method (simulating raw SQL injection)
 class NounViewerController < ApplicationController
   def index
     @gender_options = %w[masculine feminine neuter]
@@ -52,11 +52,11 @@ By injecting into the gender parameter via the URL, I was able to bypass the fil
 
 ## How I tested it:
 
-Filled in the login form with:
+Injected the following payload into the `gender` parameter via the URL:
 
-Email: ' OR 1=1 --
-
-Password: (any text)
+```sql
+/noun_viewer?gender='+OR+1=1--
+```
 
 ## 🔎 Result
 
@@ -145,27 +145,23 @@ Result: I discovered the following fields:
 ⚠️ Note: All testing was performed in a local development environment on a self-built app. No real user data was accessed or exposed.
 
 
-💡 Summary of Findings
+## Summary of Findings
 
 - The application was vulnerable to classic UNION-based SQL injection
-
 - I used controlled payloads to safely enumerate:
+  - Column count and types
+  - DBMS fingerprint
+  - Table and column names
+- This vulnerability could be exploited to extract sensitive user data such as usernames and password hashes
 
-- Column count and types
-
-- DBMS fingerprint
-
-- Table and column names
-
-This vulnerability could be exploited to extract sensitive user data such as usernames and password hashes
 
 
 
 
 ## 🛡️ Fixed Code (After)
 
-The fix involved using ActiveRecord’s built-in parameterization:
-# ✅ Secure version using ActiveRecord query interface
+The fix involved replacing raw SQL with ActiveRecord’s built-in .where() method, which uses parameterized queries. This safely escapes user input and prevents injection:
+✅ Secure version using ActiveRecord query interface:
 ```ruby
 class NounViewerController < ApplicationController
   def index
@@ -201,11 +197,11 @@ No unexpected records returned.
 
 ## Lessons Learned
 
-Rails ActiveRecord provides excellent protection by default — bypassing it opens you up to unnecessary risk.
+**Rails ActiveRecord provides excellent protection by default** — bypassing it opens you up to unnecessary risk.
 
-Raw SQL should only be used with parameter placeholders (?) or sanitized bindings.
+**Raw SQL should only be used with parameter placeholders (?) or sanitized bindings.**
 
-Demonstrating vulnerabilities safely builds intuition and improves secure coding instincts.
+**Demonstrating vulnerabilities safely builds intuition and improves secure coding instincts.**
 
 
 
